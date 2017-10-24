@@ -34,6 +34,8 @@ $(document).ready(function() {
       ]
     })
 
+    $("#day").flatpickr()
+
 });
 
 function openEditForm(date) {

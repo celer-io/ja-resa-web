@@ -6,10 +6,12 @@
   <link rel='stylesheet' href='lib/fullcalendar/fullcalendar.css' />
   <link rel='stylesheet' href='lib/font-awesome/css/font-awesome.min.css' />
   <link rel='stylesheet' href='lib/bulma/css/bulma.css' />
+  <link rel="stylesheet" href="lib/flatpicker/flatpicker.min.css">
   <script src='lib/jquery.min.js'></script>
   <script src='lib/moment.min.js'></script>
   <script src='lib/fullcalendar/fullcalendar.js'></script>
   <script src='lib/fullcalendar/locale/fr.js'></script>
+  <script src="lib/flatpicker/flatpicker.min.js"></script>
   <script src='src.js'></script>
 </head>
 <body>
@@ -19,7 +21,7 @@
       </div>
     </div>
   </section>
-  <div class="modal is-large" id="edit-form">
+  <div class="modal" id="edit-form">
     <div class="modal-background" onclick="closeEditForm()"></div>
     <div class="modal-card">
       <header class="modal-card-head">
@@ -61,7 +63,7 @@
         <div class="field">
           <label class="label">Jour</label>
           <div class="control">
-            <input class="input" type="date">
+            <input class="input" type="date" id="day">
           </div>
         </div>
 
