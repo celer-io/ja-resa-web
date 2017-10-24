@@ -1,25 +1,107 @@
 <!DOCTYPE html>
 <html lang="en">
-  <head>
-    <meta charset="utf-8">
-    <title>ja-resa-web</title>
-    <link rel='stylesheet' href='lib/fullcalendar/fullcalendar.css' />
-    <link rel='stylesheet' href='lib/bulma/css/bulma.css' />
-    <script src='lib/jquery.min.js'></script>
-    <script src='lib/moment.min.js'></script>
-    <script src='lib/fullcalendar/fullcalendar.js'></script>
-    <script src='lib/fullcalendar/locale/fr.js'></script>
-    <script src='src.js'></script>
-  </head>
-  <body>
-
-    <section class="section">
-      <div class="container">
-        <div id="calendar">
-        </div>
-        <div class="content">
-        </div>
+<head>
+  <meta charset="utf-8">
+  <title>ja-resa-web</title>
+  <link rel='stylesheet' href='lib/fullcalendar/fullcalendar.css' />
+  <link rel='stylesheet' href='lib/font-awesome/css/font-awesome.min.css' />
+  <link rel='stylesheet' href='lib/bulma/css/bulma.css' />
+  <script src='lib/jquery.min.js'></script>
+  <script src='lib/moment.min.js'></script>
+  <script src='lib/fullcalendar/fullcalendar.js'></script>
+  <script src='lib/fullcalendar/locale/fr.js'></script>
+  <script src='src.js'></script>
+</head>
+<body>
+  <section class="section">
+    <div class="container">
+      <div id="calendar">
       </div>
-    </section>
-  </body>
+    </div>
+  </section>
+  <div class="modal is-large" id="edit-form">
+    <div class="modal-background" onclick="closeEditForm()"></div>
+    <div class="modal-card">
+      <header class="modal-card-head">
+        <p class="modal-card-title">Ajouter un evenement</p>
+        <button class="delete" aria-label="close" onclick="closeEditForm()"></button>
+      </header>
+      <section class="modal-card-body">
+
+        <div class="field">
+          <label class="label">Nom</label>
+          <div class="control has-icons-left has-icons-right">
+            <input class="input" type="text" placeholder="Nom">
+            <span class="icon is-small is-left">
+              <i class="fa fa-id-badge"></i>
+            </span>
+          </div>
+        </div>
+
+        <div class="field">
+          <label class="label">Email</label>
+          <div class="control has-icons-left has-icons-right">
+            <input class="input" type="email" placeholder="Email">
+            <span class="icon is-small is-left">
+              <i class="fa fa-envelope"></i>
+            </span>
+          </div>
+        </div>
+
+        <div class="field">
+          <label class="label">Téléphone</label>
+          <div class="control has-icons-left has-icons-right">
+            <input class="input" type="tel" placeholder="Téléphone">
+            <span class="icon is-small is-left">
+              <i class="fa fa-phone"></i>
+            </span>
+          </div>
+        </div>
+
+        <div class="field">
+          <label class="label">Jour</label>
+          <div class="control">
+            <input class="input" type="date">
+          </div>
+        </div>
+
+        <div class="field">
+          <label class="label">Début</label>
+          <div class="control">
+            <div class="select is-fullwidth">
+              <select id="start">
+                <option>Select dropdown</option>
+                <option>With options</option>
+              </select>
+            </div>
+          </div>
+        </div>
+
+        <div class="field">
+          <label class="label">Fin</label>
+          <div class="control">
+            <div class="select is-fullwidth">
+              <select id="end">
+                <option>Select dropdown</option>
+                <option>With options</option>
+              </select>
+            </div>
+          </div>
+        </div>
+
+        <div class="field">
+          <label class="label">Message</label>
+          <div class="control">
+            <textarea class="textarea" placeholder="Textarea"></textarea>
+          </div>
+        </div>
+
+      </section>
+      <footer class="modal-card-foot">
+        <button class="button is-success">Sauvegarder</button>
+        <button class="button" onclick="closeEditForm()">Annuler</button>
+      </footer>
+    </div>
+  </div>
+</body>
 </html>
