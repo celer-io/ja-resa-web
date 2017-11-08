@@ -18,43 +18,50 @@
 <body>
   <section class="section">
     <div class="container">
+      <div class="tabs is-centered">
+        <ul>
+          <li class="room is-loading" data-room="music"><a class="is-loading">Studio Musique</a></li>
+          <li class="room" data-room="live-perf"><a>Studio spectacles vivant</a></li>
+          <li class="room" data-room="redbox"><a>Boite rouge</a></li>
+        </ul>
+      </div>
       <div id="calendar">
       </div>
     </div>
   </section>
   <div class="modal" id="edit-form">
-    <div class="modal-background" onclick="closeEditForm()"></div>
+    <div class="modal-background close-modal"></div>
     <div class="modal-card">
       <header class="modal-card-head">
         <p class="modal-card-title">Ajouter une reservation</p>
-        <button class="delete" aria-label="close" onclick="closeEditForm()"></button>
+        <button class="delete close-modal" aria-label="close"></button>
       </header>
       <section class="modal-card-body">
-
         <div class="field">
-          <label class="label">Nom</label>
+          <label class="label">Titre</label>
           <div class="control has-icons-left has-icons-right">
-            <input class="input" type="text" placeholder="Nom">
+            <input id="title" required class="input" type="text" placeholder="Titre">
             <span class="icon is-small is-left">
               <i class="fa fa-id-badge"></i>
             </span>
           </div>
         </div>
 
-        <div class="field">
+        <!-- NOTE: on veut vraiment chopper les emails ? -->
+        <!-- <div class="field">
           <label class="label">Email</label>
           <div class="control has-icons-left has-icons-right">
-            <input class="input" type="email" placeholder="Email">
+            <input id="email" class="input" type="email" placeholder="Email">
             <span class="icon is-small is-left">
               <i class="fa fa-envelope"></i>
             </span>
           </div>
-        </div>
+        </div> -->
 
         <div class="field">
           <label class="label">Téléphone</label>
           <div class="control has-icons-left has-icons-right">
-            <input class="input" type="tel" placeholder="Téléphone">
+            <input id="tel" class="input" type="tel" placeholder="Téléphone">
             <span class="icon is-small is-left">
               <i class="fa fa-phone"></i>
             </span>
@@ -73,8 +80,18 @@
           <div class="control">
             <div class="select is-fullwidth">
               <select id="start">
-                <option>Select dropdown</option>
-                <option>With options</option>
+                <option value="10">10:00</option>
+                <option value="11">11:00</option>
+                <option value="12">12:00</option>
+                <option value="13">13:00</option>
+                <option value="14">14:00</option>
+                <option value="15">15:00</option>
+                <option value="16">16:00</option>
+                <option value="17">17:00</option>
+                <option value="18">18:00</option>
+                <option value="19">19:00</option>
+                <option value="20">20:00</option>
+                <option value="21">21:00</option>
               </select>
             </div>
           </div>
@@ -85,26 +102,42 @@
           <div class="control">
             <div class="select is-fullwidth">
               <select id="end">
-                <option>Select dropdown</option>
-                <option>With options</option>
+                <option value="11">11:00</option>
+                <option value="12">12:00</option>
+                <option value="13">13:00</option>
+                <option value="14">14:00</option>
+                <option value="15">15:00</option>
+                <option value="16">16:00</option>
+                <option value="17">17:00</option>
+                <option value="18">18:00</option>
+                <option value="19">19:00</option>
+                <option value="20">20:00</option>
+                <option value="21">21:00</option>
+                <option value="22">22:00</option>
               </select>
             </div>
           </div>
         </div>
 
-        <div class="field">
+        <!-- <div class="field">
           <label class="label">Message</label>
           <div class="control">
-            <textarea class="textarea" placeholder="Textarea"></textarea>
+            <textarea id="message" class="textarea" placeholder="Textarea"></textarea>
           </div>
-        </div>
+        </div> -->
 
       </section>
       <footer class="modal-card-foot">
-        <button class="button is-success">Sauvegarder</button>
-        <button class="button" onclick="closeEditForm()">Annuler</button>
+        <button id="submit" class="button is-success">Envoyer</button>
+        <button class="button close-modal">Annuler</button>
       </footer>
     </div>
   </div>
+  <!-- <div class="modal">
+    <div class="modal-background"></div>
+    <span class="icon is-large">
+      <i class="fa fa-3x fa-refresh fa-spin"></i>
+    </span>
+  </div> -->
 </body>
 </html>
