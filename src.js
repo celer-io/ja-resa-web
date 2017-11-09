@@ -69,8 +69,8 @@ $(document).ready(function () {
     maxTime: '22:00',
     defaultView: 'agendaWeek',
     validRange: currentDate => ({
-      start: currentDate.clone().subtract(1, 'days'),
-      end: currentDate.clone().add(3, 'weeks')
+      start: currentDate.clone().set(midnightReset).subtract(1, 'hour'),
+      end: currentDate.clone().set(midnightReset).hour(22).add(3, 'weeks')
     }),
     height: 380,
     titleFormat: 'D MMMM YYYY',
@@ -113,6 +113,7 @@ $(document).ready(function () {
   $('.close-modal').click(() => {
     $('#edit-form').toggleClass('is-active')
     $('.input, .select, .textarea').val('')
+    $('.messages').empty()
     $('.modal-card-body').scrollTop(0) // TODO: this does not work => fix later
   })
 
@@ -141,11 +142,16 @@ $(document).ready(function () {
       isValid = false
       addMessage('ca ressemble pas a un numéro de tel ca...')
     }
-    if (event.start.isAfter(event.start)) {
+    if (event.start.isAfter(event.start) ||
+        event.end.isBefore(moment())) {
       isValid = false
-      addMessage('début avant le fin ?')
+      addMessage('euh, tu est sur.e de l\'horaire ?')
     }
-    // if (!isValid) return false
+    if (event.start.day() === 0 &&
+        (event.start.hour() < 14 || event.end.hour() > 20)) {
+      isValid = false
+      addMessage('le Jardin d\'alice n\'est ouvert qu\'entre 14h et 20h le dimanche')
+    }
 
     fc.fullCalendar('clientEvents').forEach(e => {
       if (e.id !== event.id &&
@@ -153,7 +159,7 @@ $(document).ready(function () {
           (event.start.isBefore(e.end))
         ) { // (StartA <= EndB) and (EndA >= StartB)
         isValid = false
-        if (e.source.id === 'room-events') addMessage('ta répet chevauche celle de ' + event.title)
+        if (e.source.id === 'room-events') addMessage('ta répet chevauche celle de ' + e.title)
         else addMessage('l\'evenement "' + e.title + '" est programmé en meme temps que ta répet, merci de voir avec un.e permanent.e si cela ne va pas poser de souci')
       }
     })
@@ -161,14 +167,26 @@ $(document).ready(function () {
     return isValid
   }
 
-  function addMessage (message) {
-    console.warn(message)
-    // TODO: inject message node into message area
+  function addMessage (message, color) {
+    color = color || 'warning'
+    // TODO: improve design of message...
+    let messageHtml =
+    '<article class="message is-' + color + '">' +
+    '<div class="message-header">' +
+    message +
+    '<button class="delete" aria-label="delete"></button>' +
+    '</div>' +
+    '</article>'
+
+    $(messageHtml).appendTo($('.messages'))
   }
 
-  $('#submit').click(() => {
-    // TODO: clear messages
+  $('.messages').on('click', '.message .delete', e => {
+    $(e.target.parentNode.parentNode).remove()
+  })
 
+  $('#submit').click(() => {
+    $('.messages').empty()
     editedEvent.title = $('#title').val()
     editedEvent.tel = $('#tel').val() // TODO: trim '. ()'
     editedEvent.start = selectedDay.clone().hour($('#start').val())
@@ -178,7 +196,7 @@ $(document).ready(function () {
 
     if (doSubmit) {
       // TODO: ajax call
-      console.log('submitting event :')
+      console.log('submitting event...')
     }
   })
 })
