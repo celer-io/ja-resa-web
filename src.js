@@ -35,7 +35,7 @@ $(document).ready(function () {
     }
   })
 
-  const fc = $('#calendar').fullCalendar({
+  const calendar = $('#calendar').fullCalendar({
     customButtons: {
       addEvent: {
         text: 'Ajouter une réservation',
@@ -77,13 +77,12 @@ $(document).ready(function () {
     titleFormat: 'D MMMM YYYY',
     columnFormat: 'ddd D/M ',
     eventClick: event => {
-      if (event.source.id !== 'room-events') return
+      // if (event.source.id !== 'room-events') return
       console.log('event :', event)
+
+      // event.password = 'toto'
+      editedEvent.id = event.id
       $('#password-check').toggleClass('is-active')
-      // TODO: open modal
-      // TODO: check password
-      // TODO: fill edited event
-      // TODO: fill form
     },
     eventSources: [
       {
@@ -94,9 +93,31 @@ $(document).ready(function () {
       {
         id: 'ja-events',
         events: (start, end, timezone, callback) => getEvents(start, end, 'ja-events', callback),
-        color: 'rgba(255, 0, 30, 0.5)'
+        color: 'red',
+        rendering: 'background'
       }
     ]
+  })
+
+  $('#try-password').click(e => {
+    let event = calendar.fullCalendar('clientEvents', editedEvent.id)[0]
+    $('#edit-event .help').remove()
+    $('#edit-event .is-danger').removeClass('is-danger')
+    event.password = 'toto'
+    console.log('event :', event)
+    if ($('#password').val() === event.password) {
+      editedEvent.id = event.id
+      $('#title').val(event.title)
+      $('#tel').val(event.tel)
+      $('#start').val(event.start.hour())
+      $('#end').val(event.end.hour())
+      $('#password-check').toggleClass('is-active')
+      $('#edit-event').toggleClass('is-active')
+      selectedDay = event.start.clone().set(midnightReset)
+      dayPicker.setDate(selectedDay.toDate())
+    } else {
+      invalidField('#password', 'mot de passe oublie ?')
+    }
   })
 
   function selectSlot (start, end) {
@@ -118,8 +139,10 @@ $(document).ready(function () {
       },
       success: callback,
       error: (jqXHR, textStatus, errorThrown) => {
+        openSuccessError('Oopsie.', 'danger')
         console.log('error')
-        console.log('jqXHR, textStatus, errorThrown :', jqXHR, textStatus, errorThrown)
+        console.log('textStatus :', textStatus)
+        console.log('errorThrown :', errorThrown)
       }
     })
   }
@@ -144,11 +167,20 @@ $(document).ready(function () {
   function resetEditForm () {
     $('.input, .select').val('')
     // TODO: improve efficiency ?
+
+    editedEvent = {
+      id: null,
+      title: null,
+      start: null,
+      end: null,
+      tel: null,
+      password: null
+    }
     resetValidation()
   }
 
   function resetPasswordForm () {
-    $('#password-check .input').val('')
+    $('#password').val('')
   }
 
   function resetValidation () {
@@ -158,18 +190,17 @@ $(document).ready(function () {
   }
 
   function afterSuccessOrError () {
-    // TODO: reset fc to current week
-    // TODO
+    calendar.fullCalendar('gotoDate', moment())
   }
 
   $('.room').click(e => {
     let room = e.currentTarget.dataset.room
     if (room !== currentRoom) {
-      fc.fullCalendar('removeEvents', event => event.source.id === 'room-events')
+      calendar.fullCalendar('removeEvents', event => event.source.id === 'room-events')
       $('.room[data-room="' + currentRoom + '"').toggleClass('is-active')
       currentRoom = room
       $('.room[data-room="' + currentRoom + '"').toggleClass('is-active')
-      fc.fullCalendar('refetchEventSources', 'room-events')
+      calendar.fullCalendar('refetchEventSources', 'room-events')
     }
   })
 
@@ -190,33 +221,28 @@ $(document).ready(function () {
     if (event.start.isAfter(event.end) ||
         event.end.isBefore(moment())) {
       isValid = false
-      console.log('event.start.isAfter(event.start) || event.end.isBefore(moment())')
       invalidField('#start, #end', 'Huh, tu est sur.e de l\'horaire ?')
     }
     if (event.start.day() === 0) {
-      console.log('event.start.day() === 0')
       if (event.start.hour() < 14) {
-        console.log('event.start.hour() < 14')
         isValid = false
         invalidField('#start', 'Le Jardin d\'alice ouvre a 14h le dimanche')
       }
       if (event.end.hour() > 20) {
-        console.log('event.end.hour() > 20')
         isValid = false
         invalidField('#end', 'Le Jardin d\'alice ferme a 20h le dimanche')
       }
     }
 
-    fc.fullCalendar('clientEvents').forEach(e => {
+    calendar.fullCalendar('clientEvents').forEach(e => {
       if (e.id !== event.id &&
           (e.start.isBefore(event.end)) &&
           (event.start.isBefore(e.end))
         ) { // (StartA <= EndB) and (EndA >= StartB)
         isValid = false
-
         if (e.source.id === 'room-events') {
           addWarning('Ta répet chevauche celle de <i>"' + e.title + '"</i> prevue de ' + e.start.hour() + 'h a ' + e.end.hour() + 'h')
-        } else {
+        } else if (e.source.id === 'ja-events') {
           addWarning('L\'evenement <i>"' + e.title + '"</i> est programmé en meme temps que ta répet, merci de voir avec un.e permanent.e si cela ne va pas poser de souci')
         }
       }
@@ -234,8 +260,7 @@ $(document).ready(function () {
 
   function invalidField (fieldId, message) {
     let fieldElem = $(fieldId)
-    console.log('fieldElem :', fieldElem)
-    fieldElem.addClass('is-danger')
+    fieldElem.addClass('is-danger') // TODO: fix for <select> and multiple
     fieldElem.parents('.control').after('<p class="help">' + message + '</p>')
   }
 
@@ -271,11 +296,11 @@ $(document).ready(function () {
           let eventPrice = editedEvent.end.diff(editedEvent.start, 'hours') * hourPrice
           $('#edit-event').toggleClass('is-active')
           resetEditForm()
-          openSuccessError('Ta reservation a ete ajoutee, n\'oublie pas de mettre ' + eventPrice + '€, ou plus si le coeur t\'en dis, dans la caisse a l\'etage.<br>Merci et bonne repet !')
+          openSuccessError('Ta reservation a ete ajoutee, n\'oublie pas de mettre ' + eventPrice + '€, ou plus si le coeur t\'en dis, dans la caisse a l\'etage.<br>Merci et bonne repet !', 'success')
         })
         .fail(data => {
-          openSuccessError('Oops, ya un truc qui marche pas.')
-          console.log('data :', data)
+          openSuccessError('Oops, un truc ne marche pas.', 'danger')
+          console.warn('data :', data)
         })
     }
   })
