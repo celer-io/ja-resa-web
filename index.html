@@ -21,7 +21,7 @@
       <div class="tabs is-centered">
         <ul>
           <li class="room is-loading" data-room="music"><a class="is-loading">Studio Musique</a></li>
-          <li class="room" data-room="live-perf"><a>Studio spectacles vivant</a></li>
+          <li class="room" data-room="live-perf"><a>Salle théatre et danse</a></li>
           <li class="room" data-room="redbox"><a>Boite rouge</a></li>
         </ul>
       </div>
@@ -29,109 +29,104 @@
       </div>
     </div>
   </section>
-  <div class="modal" id="edit-form">
+  <div class="modal" id="password-check">
     <div class="modal-background close-modal"></div>
-    <div class="modal-card">
-      <header class="modal-card-head">
-        <p class="modal-card-title">Ajouter une reservation</p>
-        <button class="delete close-modal" aria-label="close"></button>
-      </header>
-      <section class="modal-card-body">
-        <div class="messages">
-        </div>
-        <div class="field">
-          <label class="label">Titre</label>
-          <div class="control has-icons-left has-icons-right">
-            <input id="title" required class="input" type="text" placeholder="Titre">
-            <span class="icon is-small is-left">
-              <i class="fa fa-id-badge"></i>
-            </span>
-          </div>
-        </div>
-
-        <!-- NOTE: on veut vraiment chopper les emails ? -->
-        <!-- <div class="field">
-          <label class="label">Email</label>
-          <div class="control has-icons-left has-icons-right">
-            <input id="email" class="input" type="email" placeholder="Email">
-            <span class="icon is-small is-left">
-              <i class="fa fa-envelope"></i>
-            </span>
-          </div>
-        </div> -->
-
-        <div class="field">
-          <label class="label">Téléphone</label>
-          <div class="control has-icons-left has-icons-right">
-            <input id="tel" class="input" type="tel" placeholder="Téléphone">
-            <span class="icon is-small is-left">
-              <i class="fa fa-phone"></i>
-            </span>
-          </div>
-        </div>
-
-        <div class="field">
-          <label class="label">Jour</label>
-          <div class="control">
-            <input class="input" type="date" id="day">
-          </div>
-        </div>
-
-        <div class="field">
-          <label class="label">Début</label>
-          <div class="control">
-            <div class="select is-fullwidth">
-              <select id="start">
-                <option value="10">10:00</option>
-                <option value="11">11:00</option>
-                <option value="12">12:00</option>
-                <option value="13">13:00</option>
-                <option value="14">14:00</option>
-                <option value="15">15:00</option>
-                <option value="16">16:00</option>
-                <option value="17">17:00</option>
-                <option value="18">18:00</option>
-                <option value="19">19:00</option>
-                <option value="20">20:00</option>
-                <option value="21">21:00</option>
-              </select>
-            </div>
-          </div>
-        </div>
-
-        <div class="field">
-          <label class="label">Fin</label>
-          <div class="control">
-            <div class="select is-fullwidth">
-              <select id="end">
-                <option value="11">11:00</option>
-                <option value="12">12:00</option>
-                <option value="13">13:00</option>
-                <option value="14">14:00</option>
-                <option value="15">15:00</option>
-                <option value="16">16:00</option>
-                <option value="17">17:00</option>
-                <option value="18">18:00</option>
-                <option value="19">19:00</option>
-                <option value="20">20:00</option>
-                <option value="21">21:00</option>
-                <option value="22">22:00</option>
-              </select>
-            </div>
-          </div>
-        </div>
-      </section>
-      <footer class="modal-card-foot">
-        <button id="submit" class="button is-success">Envoyer</button>
-        <button class="button close-modal">Annuler</button>
-      </footer>
+    <div class="modal-content">
     </div>
   </div>
-  <!-- <div class="modal">
-    <div class="modal-background"></div>
-    <span class="icon is-large">
-      <i class="fa fa-3x fa-refresh fa-spin"></i>
-    </span>
-  </div> -->
+  <div class="modal" id="edit-event">
+    <div class="modal-background close-modal"></div>
+    <div class="modal-content">
+
+      <div class="message">
+        <section class="message-body">
+          <div class="field">
+            <label class="label">Titre</label>
+            <div class="control has-icons-left has-icons-right">
+              <input id="title" required class="input" type="text" placeholder="Titre">
+              <span class="icon is-small is-left">
+                <i class="fa fa-id-badge"></i>
+              </span>
+            </div>
+          </div>
+
+          <div class="field">
+            <label class="label">Téléphone</label>
+            <div class="control has-icons-left has-icons-right">
+              <input id="tel" class="input" type="tel" placeholder="Téléphone">
+              <span class="icon is-small is-left">
+                <i class="fa fa-phone"></i>
+              </span>
+            </div>
+          </div>
+
+          <div class="field">
+            <label class="label">Jour</label>
+            <div class="control">
+              <input class="input" type="date" id="day">
+            </div>
+          </div>
+
+          <div class="field">
+            <label class="label">Début</label>
+            <div class="control">
+              <div class="select is-fullwidth">
+                <select id="start">
+                  <option value="10">10:00</option>
+                  <option value="11">11:00</option>
+                  <option value="12">12:00</option>
+                  <option value="13">13:00</option>
+                  <option value="14">14:00</option>
+                  <option value="15">15:00</option>
+                  <option value="16">16:00</option>
+                  <option value="17">17:00</option>
+                  <option value="18">18:00</option>
+                  <option value="19">19:00</option>
+                  <option value="20">20:00</option>
+                  <option value="21">21:00</option>
+                </select>
+              </div>
+            </div>
+          </div>
+
+          <div class="field">
+            <label class="label">Fin</label>
+            <div class="control">
+              <div class="select is-fullwidth">
+                <select id="end">
+                  <option value="11">11:00</option>
+                  <option value="12">12:00</option>
+                  <option value="13">13:00</option>
+                  <option value="14">14:00</option>
+                  <option value="15">15:00</option>
+                  <option value="16">16:00</option>
+                  <option value="17">17:00</option>
+                  <option value="18">18:00</option>
+                  <option value="19">19:00</option>
+                  <option value="20">20:00</option>
+                  <option value="21">21:00</option>
+                  <option value="22">22:00</option>
+                </select>
+              </div>
+            </div>
+          </div>
+          <button id="submit" class="button is-success">Envoyer</button>
+          <button class="button close-modal">Annuler</button>
+        </section>
+      </div>
+    </div>
+  </div>
+  <div class="modal" id="success-error">
+    <div class="modal-background close-modal"></div>
+    <div class="modal-content">
+      <article class="message">
+        <div class="message-body">
+          <article id="success-error-text">
+          </article>
+          <button class="button close-modal">Ok</button>
+        </div>
+      </article>
+    </div>
+  </div>
 </body>
 </html>
