@@ -1,16 +1,16 @@
 /* global $, flatpickr, moment */
 $(document).ready(function () {
-  // const apiUrl = 'http://demo6943786.mockable.io/'
+  // CONFIG
   const apiUrl = 'http://localhost:8080/'
   const hourPrice = 2.5 // €
 
+  // INIT VALUES
   const midnightReset = {
     'hour': 0,
     'minute': 0,
     'second': 0,
     'milisecond': 0
   }
-
   let currentRoom = 'music'
   let selectedDay = moment().set(midnightReset)
   let editedEvent = {
@@ -22,6 +22,101 @@ $(document).ready(function () {
     password: null
   }
 
+  // CAL EVENT HANDLERS
+  const onAddEventClick = () => $('#edit-event').toggleClass('is-active')
+
+  const onEventClick = event => {
+    editedEvent.id = event.id
+    $('#password-check').toggleClass('is-active')
+  }
+
+  const onSelectSlot = (start, end) => {
+    $('#edit-event').toggleClass('is-active')
+    selectedDay = start.clone().set(midnightReset)
+    dayPicker.setDate(selectedDay.toDate())
+    $('#start').val(start.hour())
+    $('#end').val(end.hour())
+  }
+
+  const onTryPasswordClick = e => {
+    let event = calendar.fullCalendar('clientEvents', editedEvent.id)[0]
+    $('#edit-event .help').remove()
+    $('#edit-event .is-danger').removeClass('is-danger')
+    event.password = 'toto' // TODO : remve dummy password, or set stronger if not present
+    if ($('#password').val() === event.password) {
+      editedEvent.id = event.id
+      $('#title').val(event.title)
+      $('#tel').val(event.tel)
+      $('#start').val(event.start.hour())
+      $('#end').val(event.end.hour())
+      $('#password-check').toggleClass('is-active')
+      $('#edit-event').toggleClass('is-active')
+      selectedDay = event.start.clone().set(midnightReset)
+      dayPicker.setDate(selectedDay.toDate())
+    } else {
+      invalidField('#password', 'mot de passe oublie ?')
+    }
+  }
+
+  const onModalClose = e => {
+    let modalEl = $(e.target).parents('.modal')
+    modalEl.toggleClass('is-active')
+
+    switch (modalEl.attr('id')) {
+      case 'edit-event':
+        resetEditForm()
+        break
+      case 'password-check':
+        resetPasswordForm()
+        break
+      case 'success-error':
+        afterSuccessOrError()
+        break
+    }
+  }
+
+  const onRoomClick = e => {
+    let room = e.currentTarget.dataset.room
+    if (room !== currentRoom) {
+      calendar.fullCalendar('removeEvents', event => event.source.id === 'room-events')
+      $('.room[data-room="' + currentRoom + '"').toggleClass('is-active')
+      currentRoom = room
+      $('.room[data-room="' + currentRoom + '"').toggleClass('is-active')
+      calendar.fullCalendar('refetchEventSources', 'room-events')
+    }
+  }
+
+  const onEventSubmit = () => {
+    resetValidation()
+    editedEvent.title = $('#title').val()
+    editedEvent.tel = $('#tel').val() // TODO: trim '. ()'
+    editedEvent.start = selectedDay.clone().hour($('#start').val())
+    editedEvent.end = selectedDay.clone().hour($('#end').val())
+
+    let doSubmit = validateEvent(editedEvent)
+
+    if (doSubmit) {
+      $.post(apiUrl + currentRoom, formatEvent(editedEvent))
+        .done(data => {
+          let eventPrice = editedEvent.end.diff(editedEvent.start, 'hours') * hourPrice
+          $('#edit-event').toggleClass('is-active')
+          resetEditForm()
+          openSuccessError('Ta reservation a ete ajoutee, n\'oublie pas de mettre ' + eventPrice + '€, ou plus si le coeur t\'en dis, dans la caisse a l\'etage.<br>Merci et bonne repet !', 'success')
+        })
+        .fail(data => {
+          openSuccessError('Oops, un truc ne marche pas.', 'danger')
+          console.warn('data :', data)
+        })
+    }
+  }
+
+  // DOM events bindings
+  $('#try-password').click(onTryPasswordClick)
+  $('.close-modal').click(onModalClose)
+  $('.room').click(onRoomClick)
+  $('#submit').click(onEventSubmit)
+
+  // INIT page components
   $('.room[data-room="' + currentRoom + '"').toggleClass('is-active')
 
   flatpickr.localize(flatpickr.l10ns.fr)
@@ -39,7 +134,7 @@ $(document).ready(function () {
     customButtons: {
       addEvent: {
         text: 'Ajouter une réservation',
-        click: () => $('#edit-event').toggleClass('is-active')
+        click: onAddEventClick
       }
     },
     header: {
@@ -60,7 +155,7 @@ $(document).ready(function () {
       }
     ],
     selectable: true,
-    select: selectSlot,
+    select: onSelectSlot,
     selectConstraint: 'businessHours',
     selectHelper: true,
     allDaySlot: false,
@@ -76,14 +171,7 @@ $(document).ready(function () {
     height: 380,
     titleFormat: 'D MMMM YYYY',
     columnFormat: 'ddd D/M ',
-    eventClick: event => {
-      // if (event.source.id !== 'room-events') return
-      console.log('event :', event)
-
-      // event.password = 'toto'
-      editedEvent.id = event.id
-      $('#password-check').toggleClass('is-active')
-    },
+    eventClick: onEventClick,
     eventSources: [
       {
         id: 'room-events',
@@ -98,35 +186,6 @@ $(document).ready(function () {
       }
     ]
   })
-
-  $('#try-password').click(e => {
-    let event = calendar.fullCalendar('clientEvents', editedEvent.id)[0]
-    $('#edit-event .help').remove()
-    $('#edit-event .is-danger').removeClass('is-danger')
-    event.password = 'toto'
-    console.log('event :', event)
-    if ($('#password').val() === event.password) {
-      editedEvent.id = event.id
-      $('#title').val(event.title)
-      $('#tel').val(event.tel)
-      $('#start').val(event.start.hour())
-      $('#end').val(event.end.hour())
-      $('#password-check').toggleClass('is-active')
-      $('#edit-event').toggleClass('is-active')
-      selectedDay = event.start.clone().set(midnightReset)
-      dayPicker.setDate(selectedDay.toDate())
-    } else {
-      invalidField('#password', 'mot de passe oublie ?')
-    }
-  })
-
-  function selectSlot (start, end) {
-    $('#edit-event').toggleClass('is-active')
-    selectedDay = start.clone().set(midnightReset)
-    dayPicker.setDate(selectedDay.toDate())
-    $('#start').val(start.hour())
-    $('#end').val(end.hour())
-  }
 
   function getEvents (start, end, room, callback) {
     // TODO: add some sort of caching ?
@@ -146,23 +205,6 @@ $(document).ready(function () {
       }
     })
   }
-
-  $('.close-modal').click(e => {
-    let modalEl = $(e.target).parents('.modal')
-    modalEl.toggleClass('is-active')
-
-    switch (modalEl.attr('id')) {
-      case 'edit-event':
-        resetEditForm()
-        break
-      case 'password-check':
-        resetPasswordForm()
-        break
-      case 'success-error':
-        afterSuccessOrError()
-        break
-    }
-  })
 
   function resetEditForm () {
     $('.input, .select').val('')
@@ -192,17 +234,6 @@ $(document).ready(function () {
   function afterSuccessOrError () {
     calendar.fullCalendar('gotoDate', moment())
   }
-
-  $('.room').click(e => {
-    let room = e.currentTarget.dataset.room
-    if (room !== currentRoom) {
-      calendar.fullCalendar('removeEvents', event => event.source.id === 'room-events')
-      $('.room[data-room="' + currentRoom + '"').toggleClass('is-active')
-      currentRoom = room
-      $('.room[data-room="' + currentRoom + '"').toggleClass('is-active')
-      calendar.fullCalendar('refetchEventSources', 'room-events')
-    }
-  })
 
   function validateEvent (event) {
     let isValid = true
@@ -280,28 +311,4 @@ $(document).ready(function () {
     e.end = e.end.toISOString()
     return JSON.stringify(e)
   }
-
-  $('#submit').click(() => {
-    resetValidation()
-    editedEvent.title = $('#title').val()
-    editedEvent.tel = $('#tel').val() // TODO: trim '. ()'
-    editedEvent.start = selectedDay.clone().hour($('#start').val())
-    editedEvent.end = selectedDay.clone().hour($('#end').val())
-
-    let doSubmit = validateEvent(editedEvent)
-
-    if (doSubmit) {
-      $.post(apiUrl + currentRoom, formatEvent(editedEvent))
-        .done(data => {
-          let eventPrice = editedEvent.end.diff(editedEvent.start, 'hours') * hourPrice
-          $('#edit-event').toggleClass('is-active')
-          resetEditForm()
-          openSuccessError('Ta reservation a ete ajoutee, n\'oublie pas de mettre ' + eventPrice + '€, ou plus si le coeur t\'en dis, dans la caisse a l\'etage.<br>Merci et bonne repet !', 'success')
-        })
-        .fail(data => {
-          openSuccessError('Oops, un truc ne marche pas.', 'danger')
-          console.warn('data :', data)
-        })
-    }
-  })
 })
