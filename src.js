@@ -3,6 +3,18 @@ $(document).ready(function () {
   // CONFIG
   const apiUrl = 'http://localhost:8080/'
   const hourPrice = 2.5 // €
+  const openingHours = [
+    {
+      dow: [ 1, 2, 3, 4, 5, 6 ],
+      start: '10:00',
+      end: '22:00'
+    },
+    {
+      dow: [ 0 ],
+      start: '14:00',
+      end: '20:00'
+    }
+  ]
 
   // INIT VALUES
   const midnightReset = {
@@ -13,6 +25,7 @@ $(document).ready(function () {
   }
   let currentRoom = 'music'
   let selectedDay = moment().set(midnightReset)
+  let isInGodMode = true // default to false
   let editedEvent = {
     id: null,
     title: null,
@@ -22,7 +35,7 @@ $(document).ready(function () {
     password: null
   }
 
-  // CAL EVENT HANDLERS
+  // EVENT HANDLERS
   const onAddEventClick = () => $('#edit-event').toggleClass('is-active')
 
   const onEventClick = event => {
@@ -40,10 +53,10 @@ $(document).ready(function () {
 
   const onTryPasswordClick = e => {
     let event = calendar.fullCalendar('clientEvents', editedEvent.id)[0]
-    $('#edit-event .help').remove()
-    $('#edit-event .is-danger').removeClass('is-danger')
-    event.password = 'toto' // TODO : remve dummy password, or set stronger if not present
-    if ($('#password').val() === event.password) {
+    // $('#edit-event .help').remove()
+    // $('#edit-event .is-danger').removeClass('is-danger')
+    // event.password = 'toto' // TODO : remve dummy password, or set stronger if not present
+    if ($('#password').val() === event.password || isInGodMode) {
       editedEvent.id = event.id
       $('#title').val(event.title)
       $('#tel').val(event.tel)
@@ -95,7 +108,7 @@ $(document).ready(function () {
 
     let doSubmit = validateEvent(editedEvent)
 
-    if (doSubmit) {
+    if (doSubmit || isInGodMode) {
       $.post(apiUrl + currentRoom, formatEvent(editedEvent))
         .done(data => {
           let eventPrice = editedEvent.end.diff(editedEvent.start, 'hours') * hourPrice
@@ -142,18 +155,7 @@ $(document).ready(function () {
       center: 'title',
       right: 'addEvent'
     },
-    businessHours: [
-      {
-        dow: [ 1, 2, 3, 4, 5, 6 ],
-        start: '10:00',
-        end: '23:00'
-      },
-      {
-        dow: [ 0 ],
-        start: '14:00',
-        end: '20:00'
-      }
-    ],
+    businessHours: openingHours,
     selectable: true,
     select: onSelectSlot,
     selectConstraint: 'businessHours',
@@ -186,6 +188,60 @@ $(document).ready(function () {
       }
     ]
   })
+
+  function validateEvent (event) {
+    let isValid = true
+
+    if (!event.title) {
+      isValid = false
+      invalidField('#title', 'Il faut un titre pour ta réservation')
+    }
+    if (!event.tel) {
+      isValid = false
+      invalidField('#tel', 'On a besoin de ton téléphone pour te contacter')
+    } else if (!event.tel.match(/^[+0-9]{10,13}$/)) {
+      isValid = false
+      invalidField('#tel', 'Ca ressemble pas vraiment a un numéro de tel ca...')
+    }
+    if (event.start.isAfter(event.end) ||
+    event.end.isBefore(moment())) {
+      isValid = false
+      invalidField('#start, #end', 'Huh, tu est sur.e de l\'horaire ?')
+    }
+    if (event.start.day() === 0) {
+      if (event.start.hour() < 14) {
+        isValid = false
+        invalidField('#start', 'Le Jardin d\'alice ouvre a 14h le dimanche')
+      }
+      if (event.end.hour() > 20) {
+        isValid = false
+        invalidField('#end', 'Le Jardin d\'alice ferme a 20h le dimanche')
+      }
+    }
+
+    calendar.fullCalendar('clientEvents').forEach(e => {
+      if (e.id !== event.id &&
+        (e.start.isBefore(event.end)) &&
+        (event.start.isBefore(e.end))
+      ) { // (StartA <= EndB) and (EndA >= StartB)
+        isValid = false
+        if (e.source.id === 'room-events') {
+          addWarning('Ta répet chevauche celle de <i>"' + e.title + '"</i> prevue de ' + e.start.hour() + 'h a ' + e.end.hour() + 'h')
+        } else if (e.source.id === 'ja-events') {
+          addWarning('L\'evenement <i>"' + e.title + '"</i> est programmé en meme temps que ta répet, merci de voir avec un.e permanent.e si cela ne va pas poser de souci')
+        }
+      }
+    })
+
+    return isValid
+  }
+
+  function formatEvent (event) {
+    let e = $.extend(true, {}, event)
+    e.start = e.start.toISOString()
+    e.end = e.end.toISOString()
+    return JSON.stringify(e)
+  }
 
   function getEvents (start, end, room, callback) {
     // TODO: add some sort of caching ?
@@ -235,53 +291,6 @@ $(document).ready(function () {
     calendar.fullCalendar('gotoDate', moment())
   }
 
-  function validateEvent (event) {
-    let isValid = true
-
-    if (!event.title) {
-      isValid = false
-      invalidField('#title', 'Il faut un titre pour ta réservation')
-    }
-    if (!event.tel) {
-      isValid = false
-      invalidField('#tel', 'On a besoin de ton téléphone pour te contacter')
-    } else if (!event.tel.match(/^[+0-9]{10,13}$/)) {
-      isValid = false
-      invalidField('#tel', 'Ca ressemble pas vraiment a un numéro de tel ca...')
-    }
-    if (event.start.isAfter(event.end) ||
-        event.end.isBefore(moment())) {
-      isValid = false
-      invalidField('#start, #end', 'Huh, tu est sur.e de l\'horaire ?')
-    }
-    if (event.start.day() === 0) {
-      if (event.start.hour() < 14) {
-        isValid = false
-        invalidField('#start', 'Le Jardin d\'alice ouvre a 14h le dimanche')
-      }
-      if (event.end.hour() > 20) {
-        isValid = false
-        invalidField('#end', 'Le Jardin d\'alice ferme a 20h le dimanche')
-      }
-    }
-
-    calendar.fullCalendar('clientEvents').forEach(e => {
-      if (e.id !== event.id &&
-          (e.start.isBefore(event.end)) &&
-          (event.start.isBefore(e.end))
-        ) { // (StartA <= EndB) and (EndA >= StartB)
-        isValid = false
-        if (e.source.id === 'room-events') {
-          addWarning('Ta répet chevauche celle de <i>"' + e.title + '"</i> prevue de ' + e.start.hour() + 'h a ' + e.end.hour() + 'h')
-        } else if (e.source.id === 'ja-events') {
-          addWarning('L\'evenement <i>"' + e.title + '"</i> est programmé en meme temps que ta répet, merci de voir avec un.e permanent.e si cela ne va pas poser de souci')
-        }
-      }
-    })
-
-    return isValid
-  }
-
   function openSuccessError (text, color) {
     color = color || 'success'
     $('#success-error').toggleClass('is-active')
@@ -305,10 +314,24 @@ $(document).ready(function () {
     $('#end').parents('.field').after(messageHtml)
   }
 
-  function formatEvent (event) {
-    let e = $.extend(true, {}, event)
-    e.start = e.start.toISOString()
-    e.end = e.end.toISOString()
-    return JSON.stringify(e)
-  }
+  window.addEventListener('mousemove', function (e) {
+    var toAppend = document.getElementsByClassName('loader-container')[0]
+    var all = document.getElementsByClassName('loader-container')
+    console.log('all :', all)
+
+    var parentDiv = document.createElement('div')
+    parentDiv.className = 'loader-container'
+    var innerDiv = document.createElement('div')
+    innerDiv.className = 'loader-truc'
+    parentDiv.appendChild(innerDiv)
+    var d = document.body.appendChild(parentDiv)
+    console.log('d :', d)
+
+    parentDiv.style.left = (e.clientX - 50) + 'px'
+    parentDiv.style.top = (e.clientY - 50) + 'px'
+
+    if (document.getElementsByClassName('loader-container').length > 50) {
+      document.body.removeChild(toAppend)
+    }
+  })
 })
