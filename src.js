@@ -2,6 +2,7 @@
 $(document).ready(function () {
   // CONFIG
   const apiUrl = 'http://localhost:8080/'
+  // const apiUrl = 'http://demo6943786.mockable.io/'
   const hourPrice = 2.5 // €
   const openingHours = [
     {
@@ -15,8 +16,10 @@ $(document).ready(function () {
       end: '20:00'
     }
   ]
+  const godCode = [38, 38, 40, 40, 37, 39, 37, 39, 66, 65]
 
   // INIT VALUES
+  let isInGodMode = false
   const midnightReset = {
     'hour': 0,
     'minute': 0,
@@ -25,7 +28,6 @@ $(document).ready(function () {
   }
   let currentRoom = 'music'
   let selectedDay = moment().set(midnightReset)
-  let isInGodMode = true // default to false
   let editedEvent = {
     id: null,
     title: null,
@@ -34,6 +36,7 @@ $(document).ready(function () {
     tel: null,
     password: null
   }
+  let godSeqCount = 0
 
   // EVENT HANDLERS
   const onAddEventClick = () => $('#edit-event').toggleClass('is-active')
@@ -53,9 +56,9 @@ $(document).ready(function () {
 
   const onTryPasswordClick = e => {
     let event = calendar.fullCalendar('clientEvents', editedEvent.id)[0]
-    // $('#edit-event .help').remove()
-    // $('#edit-event .is-danger').removeClass('is-danger')
-    // event.password = 'toto' // TODO : remve dummy password, or set stronger if not present
+    $('#edit-event .help').remove()
+    $('#edit-event .is-danger').removeClass('is-danger')
+
     if ($('#password').val() === event.password || isInGodMode) {
       editedEvent.id = event.id
       $('#title').val(event.title)
@@ -67,7 +70,7 @@ $(document).ready(function () {
       selectedDay = event.start.clone().set(midnightReset)
       dayPicker.setDate(selectedDay.toDate())
     } else {
-      invalidField('#password', 'mot de passe oublie ?')
+      invalidField('#password', 'mot de passe oublié ?')
     }
   }
 
@@ -109,17 +112,43 @@ $(document).ready(function () {
     let doSubmit = validateEvent(editedEvent)
 
     if (doSubmit || isInGodMode) {
-      $.post(apiUrl + currentRoom, formatEvent(editedEvent))
-        .done(data => {
-          let eventPrice = editedEvent.end.diff(editedEvent.start, 'hours') * hourPrice
-          $('#edit-event').toggleClass('is-active')
-          resetEditForm()
-          openSuccessError('Ta reservation a ete ajoutee, n\'oublie pas de mettre ' + eventPrice + '€, ou plus si le coeur t\'en dis, dans la caisse a l\'etage.<br>Merci et bonne repet !', 'success')
-        })
-        .fail(data => {
-          openSuccessError('Oops, un truc ne marche pas.', 'danger')
-          console.warn('data :', data)
-        })
+      $.ajax(apiUrl + currentRoom, {
+        // contentType: 'application/json',
+        dataType: 'json',
+        crossDomain: true,
+        method: editedEvent.id ? 'PUT' : 'POST',
+        data: formatEvent(editedEvent)
+      })
+      .done(data => {
+        let eventPrice = editedEvent.end.diff(editedEvent.start, 'hours') * hourPrice
+        $('#edit-event').toggleClass('is-active')
+        resetEditForm()
+        showSuccess('Ta réservation a été ajoutée, n\'oublie pas de mettre ' + eventPrice + '€, ou plus si le coeur t\'en dis, dans la caisse à l\'étage.<br>Merci et bonne répet !')
+        // TODO: set right message for update event
+      })
+      .fail(data => {
+        showError('Oops, un truc ne marche pas.')
+        console.warn('data :', data)
+      })
+    }
+  }
+
+  const onKeyDown = e => {
+    let key = e.keyCode
+    if (key === 27 && isInGodMode) toggleGodMode()
+
+    if (!godSeqCount && key === godCode[0]) {
+      godSeqCount++
+    } else if (godSeqCount > 0) {
+      if (godCode[godSeqCount] === key) godSeqCount++
+      else godSeqCount = 0
+
+      if (godSeqCount === godCode.length) {
+        toggleGodMode()
+        godSeqCount = 0
+      }
+    } else {
+      godSeqCount = 0
     }
   }
 
@@ -128,9 +157,11 @@ $(document).ready(function () {
   $('.close-modal').click(onModalClose)
   $('.room').click(onRoomClick)
   $('#submit').click(onEventSubmit)
+  $(document).keydown(onKeyDown)
 
   // INIT page components
   $('.room[data-room="' + currentRoom + '"').toggleClass('is-active')
+  $('html').toggleClass('is-in-god-mode', isInGodMode)
 
   flatpickr.localize(flatpickr.l10ns.fr)
 
@@ -206,7 +237,8 @@ $(document).ready(function () {
     if (event.start.isAfter(event.end) ||
     event.end.isBefore(moment())) {
       isValid = false
-      invalidField('#start, #end', 'Huh, tu est sur.e de l\'horaire ?')
+      invalidField('#start', 'Début avant la fin ?')
+      invalidField('#end', 'Fin après début ?')
     }
     if (event.start.day() === 0) {
       if (event.start.hour() < 14) {
@@ -228,7 +260,7 @@ $(document).ready(function () {
         if (e.source.id === 'room-events') {
           addWarning('Ta répet chevauche celle de <i>"' + e.title + '"</i> prevue de ' + e.start.hour() + 'h a ' + e.end.hour() + 'h')
         } else if (e.source.id === 'ja-events') {
-          addWarning('L\'evenement <i>"' + e.title + '"</i> est programmé en meme temps que ta répet, merci de voir avec un.e permanent.e si cela ne va pas poser de souci')
+          addWarning('L\'évènement <i>"' + e.title + '"</i> est programmé en même temps que ta répet, vois avec quelq\'un d\'ici si ca ne va pas poser de souci, merci.')
         }
       }
     })
@@ -245,20 +277,13 @@ $(document).ready(function () {
 
   function getEvents (start, end, room, callback) {
     // TODO: add some sort of caching ?
-    return $.ajax({
-      url: apiUrl + room,
-      dataType: 'json',
-      data: {
-        start: start.unix(),
-        end: end.unix()
-      },
-      success: callback,
-      error: (jqXHR, textStatus, errorThrown) => {
-        openSuccessError('Oopsie.', 'danger')
-        console.log('error')
-        console.log('textStatus :', textStatus)
-        console.log('errorThrown :', errorThrown)
-      }
+    return $.get(apiUrl + room, {start: start.unix(), end: end.unix()}, 'json')
+    .done(callback)
+    .fail((jqXHR, textStatus, errorThrown) => {
+      showError('Oops une erreur"' + jqXHR.status + textStatus + '"vient d\'arriver en récupereant les evenements.', errorThrown)
+    })
+    .always(() => {
+      // TODO: stop loading ?
     })
   }
 
@@ -288,14 +313,29 @@ $(document).ready(function () {
   }
 
   function afterSuccessOrError () {
+    $('#success-error .is-danger').removeClass('is-danger')
+    $('#success-error .is-success').removeClass('is-success')
     calendar.fullCalendar('gotoDate', moment())
   }
 
-  function openSuccessError (text, color) {
-    color = color || 'success'
-    $('#success-error').toggleClass('is-active')
+  function showError (text, data) {
+    if ($('#success-error').hasClass('is-active')) console.error('Et une autre erreur aussi :')
+    else $('#success-error').toggleClass('is-active')
+    $('#success-error .message').addClass('is-danger')
+    $('#success-error .button').addClass('is-danger')
     $('#success-error-text').html(text)
-    // TODO: set modal success/error style
+  }
+
+  function showSuccess (text) {
+    $('#success-error').toggleClass('is-active')
+    $('#success-error .message').addClass('is-success')
+    $('#success-error .button').addClass('is-success')
+    $('#success-error-text').html(text)
+    resetEditForm()
+    setTimeout(() => {
+      $('#success-error').removeClass('is-active')
+      afterSuccessOrError()
+    }, 20000)
   }
 
   function invalidField (fieldId, message) {
@@ -312,5 +352,12 @@ $(document).ready(function () {
     '</div>' +
     '</article>'
     $('#end').parents('.field').after(messageHtml)
+  }
+
+  function toggleGodMode () {
+    isInGodMode = !isInGodMode
+    $('html').toggleClass('is-in-god-mode', isInGodMode)
+    // TODO: show delete button
+    // TODO: show god mode exit button
   }
 })

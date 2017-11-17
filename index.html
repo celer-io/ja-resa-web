@@ -7,6 +7,7 @@
   <link rel='stylesheet' href='lib/font-awesome/css/font-awesome.min.css' />
   <link rel='stylesheet' href='lib/bulma/css/bulma.css' />
   <link rel="stylesheet" href="lib/flatpicker/flatpicker.min.css">
+  <link rel="stylesheet" href="style.css">
   <script src='lib/jquery.min.js'></script>
   <script src='lib/moment.min.js'></script>
   <script src='lib/fullcalendar/fullcalendar.js'></script>
@@ -20,7 +21,7 @@
     <div class="container">
       <div class="tabs is-centered">
         <ul>
-          <li class="room is-loading" data-room="music"><a class="is-loading">Studio Musique</a></li>
+          <li class="room" data-room="music"><a>Studio Musique</a></li>
           <li class="room" data-room="live-perf"><a>Salle théatre et danse</a></li>
           <li class="room" data-room="redbox"><a>Boite rouge</a></li>
         </ul>
@@ -136,9 +137,12 @@
     <div class="modal-content">
       <article class="message">
         <div class="message-body">
-          <article id="success-error-text">
-          </article>
-          <button class="button close-modal">Ok</button>
+          <p id="success-error-text">
+          </p>
+          <br>
+          <div class="has-text-centered">
+            <button class="button is-outlined close-modal">Ok</button>
+          </div>
         </div>
       </article>
     </div>
