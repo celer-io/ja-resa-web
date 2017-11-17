@@ -313,25 +313,4 @@ $(document).ready(function () {
     '</article>'
     $('#end').parents('.field').after(messageHtml)
   }
-
-  window.addEventListener('mousemove', function (e) {
-    var toAppend = document.getElementsByClassName('loader-container')[0]
-    var all = document.getElementsByClassName('loader-container')
-    console.log('all :', all)
-
-    var parentDiv = document.createElement('div')
-    parentDiv.className = 'loader-container'
-    var innerDiv = document.createElement('div')
-    innerDiv.className = 'loader-truc'
-    parentDiv.appendChild(innerDiv)
-    var d = document.body.appendChild(parentDiv)
-    console.log('d :', d)
-
-    parentDiv.style.left = (e.clientX - 50) + 'px'
-    parentDiv.style.top = (e.clientY - 50) + 'px'
-
-    if (document.getElementsByClassName('loader-container').length > 50) {
-      document.body.removeChild(toAppend)
-    }
-  })
 })
