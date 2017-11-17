@@ -1,18 +1,18 @@
 ## MVP Roadmap
-[X] Different rooms tabs
-[X] Switch events sources on tab Switch
-[X] Edit event
-[X] Protect event edit with password
-[X] Clean form on dismiss
-[X] Add form validation
-[X] God mode
-[ ] Proofread and correct spelling
+- [x] Different rooms tabs
+- [x] Switch events sources on tab Switch
+- [x] Edit event
+- [x] Protect event edit with password
+- [x] Clean form on dismiss
+- [x] Add form validation
+- [x] God mode
+- [ ] Proofread and correct spelling
 
 ## Further down the road
-[ ] Show ajax loading
-[ ] Allow event delete
-[X] Fix ja-event overlaping
-[X] ja-events transparent
-[ ] Cleanup sources
-[ ] Add documentation
+- [ ] Show ajax loading
+- [ ] Allow event delete
+- [x] Fix ja-event overlaping
+- [x] ja-events transparent
+- [ ] Cleanup sources
+- [ ] Add documentation
 <!-- [ ] Send confirmation email ? hmmm -->
