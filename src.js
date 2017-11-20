@@ -1,7 +1,7 @@
 /* global $, flatpickr, moment */
 $(document).ready(function () {
   // CONFIG
-  const apiUrl = 'http://localhost:8080/'
+  const apiUrl = 'http://localhost:8080/a/'
   // const apiUrl = 'http://demo6943786.mockable.io/'
   const hourPrice = 2.5 // €
   const openingHours = [
@@ -56,8 +56,8 @@ $(document).ready(function () {
 
   const onTryPasswordClick = e => {
     let event = calendar.fullCalendar('clientEvents', editedEvent.id)[0]
-    $('#edit-event .help').remove()
-    $('#edit-event .is-danger').removeClass('is-danger')
+    $('#password-check .help').remove()
+    $('#password-check .is-danger').removeClass('is-danger')
 
     if ($('#password').val() === event.password || isInGodMode) {
       editedEvent.id = event.id
@@ -67,6 +67,7 @@ $(document).ready(function () {
       $('#end').val(event.end.hour())
       $('#password-check').toggleClass('is-active')
       $('#edit-event').toggleClass('is-active')
+      $('#delete-event').toggleClass('is-hidden', false)
       selectedDay = event.start.clone().set(midnightReset)
       dayPicker.setDate(selectedDay.toDate())
     } else {
@@ -99,6 +100,28 @@ $(document).ready(function () {
       currentRoom = room
       $('.room[data-room="' + currentRoom + '"').toggleClass('is-active')
       calendar.fullCalendar('refetchEventSources', 'room-events')
+    }
+  }
+
+  const onEventDelete = () => {
+    if (!editedEvent.id) return showError('Ouch, un bug velu vien d\'apparaitre')
+    else {
+      $.ajax(apiUrl + currentRoom, {
+        // contentType: 'application/json',
+        dataType: 'json',
+        crossDomain: true,
+        method: 'DELETE',
+        data: JSON.stringify({id: editedEvent.id})
+      })
+      .done(data => {
+        $('#edit-event').toggleClass('is-active')
+        resetEditForm()
+        showSuccess('Ta répèt a été supprimée')
+      })
+      .fail(data => {
+        showError('Oops, un truc ne marche pas.')
+        console.warn('data :', data)
+      })
     }
   }
 
@@ -154,6 +177,7 @@ $(document).ready(function () {
 
   // DOM events bindings
   $('#try-password').click(onTryPasswordClick)
+  $('#delete-event').click(onEventDelete)
   $('.close-modal').click(onModalClose)
   $('.room').click(onRoomClick)
   $('#submit').click(onEventSubmit)
@@ -186,6 +210,7 @@ $(document).ready(function () {
       center: 'title',
       right: 'addEvent'
     },
+    timezone: 'local',
     businessHours: openingHours,
     selectable: true,
     select: onSelectSlot,
@@ -290,6 +315,7 @@ $(document).ready(function () {
   function resetEditForm () {
     $('.input, .select').val('')
     // TODO: improve efficiency ?
+    $('#delete-event').toggleClass('is-hidden', true)
 
     editedEvent = {
       id: null,
@@ -357,7 +383,6 @@ $(document).ready(function () {
   function toggleGodMode () {
     isInGodMode = !isInGodMode
     $('html').toggleClass('is-in-god-mode', isInGodMode)
-    // TODO: show delete button
     // TODO: show god mode exit button
   }
 })
