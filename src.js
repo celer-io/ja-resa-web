@@ -42,6 +42,8 @@ $(document).ready(function () {
   const onAddEventClick = () => $('#edit-event').toggleClass('is-active')
 
   const onEventClick = event => {
+    if (!event.id.startsWith("jaresa-")) return
+
     editedEvent.id = event.id
     $('#password-check').toggleClass('is-active')
   }
@@ -274,6 +276,10 @@ $(document).ready(function () {
         isValid = false
         invalidField('#end', 'Le Jardin d\'alice ferme a 20h le dimanche')
       }
+    }
+    if (event.end.diff(event.start, 'hours') < 2) {
+      isValid = false
+      addWarning("Pas de répet de moins d'une heure stp")
     }
 
     calendar.fullCalendar('clientEvents').forEach(e => {
