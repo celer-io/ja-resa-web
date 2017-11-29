@@ -160,9 +160,10 @@ $(document).ready(function () {
     }
   }
 
+  const discartedKeys = ['Shift', 'Control', 'Alt']
   const onKeyDown = e => {
     let key = e.originalEvent.key
-    if (key === "Escape" && isInGodMode) toggleGodMode()
+    if (key === 'Escape' && isInGodMode) toggleGodMode()
 
     if (!godSeqCount && key === godCode[0]) {
       godSeqCount++
