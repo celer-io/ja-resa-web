@@ -16,7 +16,8 @@ $(document).ready(function () {
       end: '20:00'
     }
   ]
-  const godCode = [38, 38, 40, 40, 37, 39, 37, 39, 66, 65]
+  // const godCode = [38, 38, 40, 40, 37, 39, 37, 39, 66, 65]
+  const godCode = 'borne2bealive' //NOTE: passwd sorted in clear code ?
 
   // INIT VALUES
   let isInGodMode = false
@@ -42,10 +43,11 @@ $(document).ready(function () {
   const onAddEventClick = () => $('#edit-event').toggleClass('is-active')
 
   const onEventClick = event => {
-    if (!event.id.startsWith("jaresa-")) return
+    if (!event.id.startsWith('jaresa-')) return
 
     editedEvent.id = event.id
     $('#password-check').toggleClass('is-active')
+    $('#password').focus()
   }
 
   const onSelectSlot = (start, end) => {
@@ -73,7 +75,7 @@ $(document).ready(function () {
       selectedDay = event.start.clone().set(midnightReset)
       dayPicker.setDate(selectedDay.toDate())
     } else {
-      invalidField('#password', 'mot de passe oublié ?')
+      invalidField('#password', 'Mot de passe oublié ? Vois avec quelqu\'un d\'ici.')
     }
   }
 
@@ -106,7 +108,7 @@ $(document).ready(function () {
   }
 
   const onEventDelete = () => {
-    if (!editedEvent.id) return showError('Ouch, un bug velu vien d\'apparaitre')
+    if (!editedEvent.id) return showError('Ouch, un bug velu vient d\'apparaitre.')
     else {
       $.ajax(apiUrl + currentRoom, {
         // contentType: 'application/json',
@@ -118,7 +120,7 @@ $(document).ready(function () {
       .done(data => {
         $('#edit-event').toggleClass('is-active')
         resetEditForm()
-        showSuccess('Ta répèt a été supprimée')
+        showSuccess('Ta répet\' a été supprimée.')
       })
       .fail(data => {
         showError('Oops, un truc ne marche pas.')
@@ -148,7 +150,7 @@ $(document).ready(function () {
         let eventPrice = editedEvent.end.diff(editedEvent.start, 'hours') * hourPrice
         $('#edit-event').toggleClass('is-active')
         resetEditForm()
-        showSuccess('Ta réservation a été ajoutée, n\'oublie pas de mettre ' + eventPrice + '€, ou plus si le coeur t\'en dis, dans la caisse à l\'étage.<br>Merci et bonne répet !')
+        showSuccess('Ta réservation a été ajoutée, n\'oublie pas de mettre ' + eventPrice + '€, ou plus si le cœur t\'en dis, dans la caisse à l\'étage.<br>Merci et bonne répet\' !')
         // TODO: set right message for update event
       })
       .fail(data => {
@@ -159,14 +161,14 @@ $(document).ready(function () {
   }
 
   const onKeyDown = e => {
-    let key = e.keyCode
-    if (key === 27 && isInGodMode) toggleGodMode()
+    let key = e.originalEvent.key
+    if (key === "Escape" && isInGodMode) toggleGodMode()
 
     if (!godSeqCount && key === godCode[0]) {
       godSeqCount++
     } else if (godSeqCount > 0) {
       if (godCode[godSeqCount] === key) godSeqCount++
-      else godSeqCount = 0
+      else if (!discartedKeys.indexOf(godCode[godSeqCount])) godSeqCount = 0
 
       if (godSeqCount === godCode.length) {
         toggleGodMode()
@@ -252,34 +254,36 @@ $(document).ready(function () {
 
     if (!event.title) {
       isValid = false
-      invalidField('#title', 'Il faut un titre pour ta réservation')
+      invalidField('#title', 'Il faut un titre pour ta réservation.')
     }
     if (!event.tel) {
       isValid = false
-      invalidField('#tel', 'On a besoin de ton téléphone pour te contacter')
+      invalidField('#tel', 'Merci de remplir ce champ.')
     } else if (!event.tel.match(/^[+0-9]{10,13}$/)) {
       isValid = false
-      invalidField('#tel', 'Ca ressemble pas vraiment a un numéro de tel ca...')
+      invalidField('#tel', 'Ça ressemble pas vraiment à un numéro de tel ça.')
     }
-    if (event.start.isAfter(event.end) ||
-    event.end.isBefore(moment())) {
+    if (event.start.isAfter(event.end) || event.end.isBefore(moment())) {
       isValid = false
-      invalidField('#start', 'Début avant la fin ?')
-      invalidField('#end', 'Fin après début ?')
+      invalidField('#start', 'Début après la fin ?')
+      invalidField('#end', 'Fin avant début ?')
     }
     if (event.start.day() === 0) {
       if (event.start.hour() < 14) {
         isValid = false
-        invalidField('#start', 'Le Jardin d\'alice ouvre a 14h le dimanche')
+        invalidField('#start', 'Le Jardin d\'Alice ouvre à 14h le dimanche')
       }
       if (event.end.hour() > 20) {
         isValid = false
-        invalidField('#end', 'Le Jardin d\'alice ferme a 20h le dimanche')
+        invalidField('#end', 'Le Jardin d\'Alice ferme à 20h le dimanche')
       }
     }
     if (event.end.diff(event.start, 'hours') < 2) {
       isValid = false
-      addWarning("Pas de répet de moins d'une heure stp")
+      addWarning('Pas de répet\' de moins de deux heures, confirme avec quelqu\'un du Jardin.')
+    }
+    if (currentRoom === 'redbox') {
+      addWarning('La réservation du box rouge peut gêner, vois avec quelq\'un d\'ici si ca ne va pas poser de souci, merci.')
     }
 
     calendar.fullCalendar('clientEvents').forEach(e => {
@@ -289,9 +293,9 @@ $(document).ready(function () {
       ) { // (StartA <= EndB) and (EndA >= StartB)
         isValid = false
         if (e.source.id === 'room-events') {
-          addWarning('Ta répet chevauche celle de <i>"' + e.title + '"</i> prevue de ' + e.start.hour() + 'h a ' + e.end.hour() + 'h')
+          addWarning('Ta répet\' chevauche celle de <i>"' + e.title + '"</i> prevue de ' + e.start.hour() + 'h a ' + e.end.hour() + 'h')
         } else if (e.source.id === 'ja-events') {
-          addWarning('L\'évènement <i>"' + e.title + '"</i> est programmé en même temps que ta répet, vois avec quelq\'un d\'ici si ca ne va pas poser de souci, merci.')
+          addWarning('L\'évènement <i>"' + e.title + '"</i> est programmé en même temps que ta répet\', vois avec quelq\'un d\'ici si ca ne va pas poser de souci, merci.')
         }
       }
     })
@@ -311,7 +315,7 @@ $(document).ready(function () {
     return $.get(apiUrl + room, {start: start.unix(), end: end.unix()}, 'json')
     .done(callback)
     .fail((jqXHR, textStatus, errorThrown) => {
-      showError('Oops une erreur"' + jqXHR.status + textStatus + '"vient d\'arriver en récupereant les evenements.', errorThrown)
+      showError('Oops une erreur "' + jqXHR.status + '' + textStatus + '" vient d\'arriver en récupérant les evenements.', errorThrown)
     })
     .always(() => {
       // TODO: stop loading ?
@@ -347,6 +351,7 @@ $(document).ready(function () {
   function afterSuccessOrError () {
     $('#success-error .is-danger').removeClass('is-danger')
     $('#success-error .is-success').removeClass('is-success')
+    calendar.fullCalendar('refetchEvents')
     calendar.fullCalendar('gotoDate', moment())
   }
 

@@ -6,11 +6,14 @@
 - [x] Clean form on dismiss
 - [x] Add form validation
 - [x] God mode
-- [ ] Proofread and correct spelling
+- [x] Proofread and correct spelling
+- [x] Update password message
+- [x] Prevenir tel=mdp
+- [x] Add restriction on redbox
 
 ## Further down the road
 - [ ] Show ajax loading
-- [ ] Allow event delete
+- [x] Allow event delete
 - [x] Fix ja-event overlaping
 - [x] ja-events transparent
 - [ ] Cleanup sources
